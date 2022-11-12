@@ -14,6 +14,6 @@ wait
 stackname=$1
 
 # Deploy DSB from master node
-docker rm $stackname
+docker stack rm $stackname
 wait
 docker stack deploy -c docker-compose-swarm-$stackname.yml $stackname
