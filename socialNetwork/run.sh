@@ -7,11 +7,13 @@ servers=(
 
 # Update source code for each server
 for i in ${servers[@]}; do
-    (ssh -p 22 $i "cd /proj/latencymodel-PG0/yazhuoz/DeathStarBench/socialNetwork && git pull https://github.com/yazhuo/DeathStarBench.git")&
+    (ssh -p 22 $i "cd /proj/latencymodel-PG0/yazhuoz/DeathStarBench/ && git pull origin yazhuo_dev")&
 done
+wait
 
 stackname=$1
 
 # Deploy DSB from master node
 docker rm $stackname
-docker stack deploy -c docker-compose-swarm-user.yml $stackname
+wait
+docker stack deploy -c docker-compose-swarm-$stackname.yml $stackname
