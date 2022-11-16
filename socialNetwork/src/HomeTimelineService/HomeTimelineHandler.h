@@ -123,6 +123,8 @@ void HomeTimelineHandler::WriteHomeTimeline(
         LOG(error) << err.what();
         throw err;
       }
+      LOG(info) <<"followers_id_set items:" << followers_id_set.size()<<"; pipeline items:" << pipe_map.size();
+
     } else {
       // Create multi-pipeline that match with shards pool
       std::map<std::shared_ptr<ConnectionPool>, std::shared_ptr<Pipeline>> pipe_map;
