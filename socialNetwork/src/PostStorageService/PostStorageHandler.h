@@ -399,6 +399,9 @@ void PostStorageHandler::ReadPosts(
     key_sizes[idx] = key_str.length();
     idx++;
   }
+  auto get_span = opentracing::Tracer::Global()->StartSpan(
+      "post_storage_mmc_mget_client", {opentracing::ChildOf(&span->context())});
+
   memcached_rc =
       memcached_mget(memcached_client, keys, key_sizes, post_ids.size());
   if (memcached_rc != MEMCACHED_SUCCESS) {
@@ -411,15 +414,18 @@ void PostStorageHandler::ReadPosts(
     throw se;
   }
 
+  get_span->Finish();
+
   char return_key[MEMCACHED_MAX_KEY];
   size_t return_key_length;
   char *return_value;
   size_t return_value_length;
   uint32_t flags;
-  auto get_span = opentracing::Tracer::Global()->StartSpan(
-      "post_storage_mmc_mget_client", {opentracing::ChildOf(&span->context())});
 
   while (true) {
+    auto fetch_span = opentracing::Tracer::Global()->StartSpan(
+        "post_storage_mmc_fetch_client",
+        {opentracing::ChildOf(&span->context())});
     return_value =
         memcached_fetch(memcached_client, return_key, &return_key_length,
                         &return_value_length, &flags, &memcached_rc);
@@ -437,6 +443,8 @@ void PostStorageHandler::ReadPosts(
       se.message = "Cannot get posts of request " + std::to_string(req_id);
       throw se;
     }
+    fetch_span->Finish();
+    
     Post new_post;
     json post_json = json::parse(
         std::string(return_value, return_value + return_value_length));
@@ -469,7 +477,7 @@ void PostStorageHandler::ReadPosts(
     post_ids_not_cached.erase(new_post.post_id);
     free(return_value);
   }
-  get_span->Finish();
+
   memcached_quit(memcached_client);
   memcached_pool_push(_memcached_client_pool, memcached_client);
   for (int i = 0; i < post_ids.size(); ++i) {
