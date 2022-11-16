@@ -144,7 +144,7 @@ void HomeTimelineHandler::WriteHomeTimeline(
                   UpdateType::NOT_EXIST);
         }
       }
-      // LOG(info) <<"followers_id_set items:" << followers_id_set.size()<<"; pipeline items:" << pipe_map.size();
+      LOG(info) <<"followers_id_set items:" << followers_id_set.size()<<"; pipeline items:" << pipe_map.size();
       try {
         for(auto const &it : pipe_map) {
           auto _pipe = it.second.get();
