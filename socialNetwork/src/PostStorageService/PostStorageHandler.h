@@ -422,11 +422,10 @@ void PostStorageHandler::ReadPosts(
   size_t return_value_length;
   uint32_t flags;
 
-
-  while (true) {
-    auto fetch_span = opentracing::Tracer::Global()->StartSpan(
+  auto fetch_span = opentracing::Tracer::Global()->StartSpan(
         "post_storage_mmc_fetch_client",
         {opentracing::ChildOf(&span->context())});
+  while (true) {
     return_value =
         memcached_fetch(memcached_client, return_key, &return_key_length,
                         &return_value_length, &flags, &memcached_rc);
@@ -445,7 +444,6 @@ void PostStorageHandler::ReadPosts(
       se.message = "Cannot get posts of request " + std::to_string(req_id);
       throw se;
     }
-    fetch_span->Finish();
 
     Post new_post;
     json post_json = json::parse(
@@ -479,6 +477,7 @@ void PostStorageHandler::ReadPosts(
     post_ids_not_cached.erase(new_post.post_id);
     free(return_value);
   }
+  fetch_span->Finish();
 
   memcached_quit(memcached_client);
   memcached_pool_push(_memcached_client_pool, memcached_client);
@@ -599,20 +598,20 @@ void PostStorageHandler::ReadPosts(
         se.message = "Failed to pop a client from memcached pool";
         throw se;
       }
-    //   auto set_span = opentracing::Tracer::Global()->StartSpan(
-    //       "mmc_set_client", {opentracing::ChildOf(&span->context())});
-      for (auto &it : post_json_map) {
-        auto set_span = opentracing::Tracer::Global()->StartSpan(
+      auto set_span = opentracing::Tracer::Global()->StartSpan(
           "mmc_set_client", {opentracing::ChildOf(&span->context())});
+      for (auto &it : post_json_map) {
+        // auto set_span = opentracing::Tracer::Global()->StartSpan(
+        //   "mmc_set_client", {opentracing::ChildOf(&span->context())});
 
         std::string id_str = std::to_string(it.first);
         _rc = memcached_set(_memcached_client, id_str.c_str(), id_str.length(),
                             it.second.c_str(), it.second.length(),
                             static_cast<time_t>(0), static_cast<uint32_t>(0));
-        set_span->Finish();
+        // set_span->Finish();
       }
       memcached_pool_push(_memcached_client_pool, _memcached_client);
-    //   set_span->Finish();
+      set_span->Finish();
     }));
   }
 
