@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
   int memcached_timeout = config_json["post-storage-memcached"]["timeout_ms"];
 
   memcached_client_pool = init_memcached_client_pool(
-      config_json, "post-storage", 32, memcached_conns);
+      config_json, "post-storage", memcached_conns, memcached_conns);
   mongodb_client_pool =
       init_mongodb_client_pool(config_json, "post-storage", mongodb_conns);
   if (memcached_client_pool == nullptr || mongodb_client_pool == nullptr) {

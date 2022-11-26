@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   jaeger-agent:
-    image: jaegertracing/jaeger-agent:latest
+    image: jaegertracing/jaeger-agent:1
     hostname: jaeger-agent
     command: ["--reporter.grpc.host-port=jaeger-collector:14250"]
     deploy:
@@ -465,7 +465,7 @@ services:
       - ./config:/social-network-microservices/config
 
   jaeger-collector:
-    image: jaegertracing/jaeger-collector
+    image: jaegertracing/jaeger-collector:1
     command:
       [
         "--cassandra.keyspace=jaeger_v1_dc1",
@@ -486,7 +486,7 @@ services:
       - cassandra-schema
 
   jaeger-query:
-    image: jaegertracing/jaeger-query
+    image: jaegertracing/jaeger-query:1
     command:
       ["--cassandra.keyspace=jaeger_v1_dc1", "--cassandra.servers=cassandra"]
     ports:

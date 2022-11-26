@@ -166,7 +166,7 @@ services:
     deploy:
       placement:
         constraints: 
-          - "node.hostname==ynode6.controlled-exp.latencymodel-pg0.utah.cloudlab.us"
+          - "node.hostname==znode1.controlled-exp.latencymodel-pg0.wisc.cloudlab.us"
     hostname: post-storage-memcached
     image: memcached
     command:
@@ -202,7 +202,7 @@ services:
         condition: any
       placement:
         constraints: 
-          - "node.hostname==znode0.controlled-exp.latencymodel-pg0.wisc.cloudlab.us"
+          - "node.hostname==ynode1.controlled-exp.latencymodel-pg0.utah.cloudlab.us"
     command: ["PostStorageService"]
     hostname: post-storage-service
     image: yazhuo/social-network-microservices-v2:latest

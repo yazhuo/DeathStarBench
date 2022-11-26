@@ -15,12 +15,16 @@ memcached_pool_st *init_memcached_client_pool(
   std::string addr = config_json[service_name + "-memcached"]["addr"];
   int port = config_json[service_name + "-memcached"]["port"];
   int use_binary_protocol = config_json[service_name + "-memcached"]["binary_protocol"];
+  int timeout_ms = config_json[service_name + "-memcached"]["timeout_ms"];
+  int keepalive_ms = config_json[service_name + "-memcached"]["keepalive_ms"];
   std::string config_str = "--SERVER=" + addr + ":" + std::to_string(port);
   auto memcached_client = memcached(config_str.c_str(), config_str.length());
   memcached_behavior_set(memcached_client, MEMCACHED_BEHAVIOR_NO_BLOCK, 1);
   memcached_behavior_set(memcached_client, MEMCACHED_BEHAVIOR_TCP_NODELAY, 1);
+  memcached_behavior_set(memcached_client, MEMCACHED_BEHAVIOR_TCP_KEEPALIVE, keepalive_ms);
   if (use_binary_protocol == 1) {
-    memcached_behavior_set(memcached_client, MEMCACHED_BEHAVIOR_BINARY_PROTOCOL, 1);
+    // memcached_behavior_set(memcached_client, MEMCACHED_BEHAVIOR_BINARY_PROTOCOL, 1);
+    memcached_behavior_set(memcached_client, MEMCACHED_BEHAVIOR_BINARY_PROTOCOL, keepalive_ms);
   }
 
   auto memcached_client_pool =
