@@ -192,6 +192,9 @@ void UserTimelineHandler::ReadUserTimeline(
   }
 
   // find in mongodb
+  auto find_span = opentracing::Tracer::Global()->StartSpan(
+        "user_timeline_mongo_find_client",
+        {opentracing::ChildOf(&span->context())});
   int mongo_start = start + post_ids.size();
   std::unordered_map<std::string, double> redis_update_map;
   if (mongo_start < stop) {
@@ -217,12 +220,12 @@ void UserTimelineHandler::ReadUserTimeline(
     bson_t *opts = BCON_NEW("projection", "{", "posts", "{", "$slice", "[",
                             BCON_INT32(0), BCON_INT32(stop), "]", "}", "}");
 
-    auto find_span = opentracing::Tracer::Global()->StartSpan(
-        "user_timeline_mongo_find_client",
-        {opentracing::ChildOf(&span->context())});
+    // auto find_span = opentracing::Tracer::Global()->StartSpan(
+    //     "user_timeline_mongo_find_client",
+    //     {opentracing::ChildOf(&span->context())});
     mongoc_cursor_t *cursor =
         mongoc_collection_find_with_opts(collection, query, opts, nullptr);
-    find_span->Finish();
+    // find_span->Finish();
     const bson_t *doc;
     bool found = mongoc_cursor_next(cursor, &doc);
     if (found) {
@@ -264,6 +267,7 @@ void UserTimelineHandler::ReadUserTimeline(
     mongoc_collection_destroy(collection);
     mongoc_client_pool_push(_mongodb_client_pool, mongodb_client);
   }
+  find_span->Finish();
 
   std::future<std::vector<Post>> post_future =
       std::async(std::launch::async, [&]() {
